@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Django
+*.log
+
+media/
+staticfiles/
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Django migrations
+# Don't ignore migrations in most projects!
+# migrations/
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+
+# Packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Ruff / mypy
+.mypy_cache/
+.ruff_cache/
