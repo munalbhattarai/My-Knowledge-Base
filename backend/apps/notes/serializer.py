@@ -13,6 +13,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "tags",
+            "resource",
         ]
         read_only_fields = [
             "id",
