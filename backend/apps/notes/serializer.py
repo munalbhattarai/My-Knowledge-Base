@@ -6,6 +6,7 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = [
             "id",
+            "category",
             "title",
             "content",
             "owner",
