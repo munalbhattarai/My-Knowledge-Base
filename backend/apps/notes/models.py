@@ -13,7 +13,7 @@ class Tag(models.Model):
     
     def __str__(self):
         return self.name
-        
+    
 
 class Note(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notes")
@@ -26,6 +26,30 @@ class Note(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)
     
+    def __str__(self):
+        return self.title
+
+
+class Resource(models.Model):
+    RESOURCE_TYPES = [
+        ("ARTICLE", "Article"),
+        ("VIDEO", "Video"),
+        ("DOCUMENTATION", "Documentation"),
+        ("GITHUB", "Github"),
+        ("COURSE", "Course"),
+        ("OTHERS", "Others"),
+    ]
+    note = models.ForeignKey(Note, on_delete=models.CASCADE, related_name="resources")
+    title = models.CharField(max_length=100)
+    url = models.URLField()
+    resource_type = models.CharField(
+        max_length=100,
+        choices=RESOURCE_TYPES,
+        default= "OTHER"
+    )
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return self.title
         
