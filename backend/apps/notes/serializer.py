@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Note
+from .models import Note, Resource
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,11 +13,27 @@ class NoteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "tags",
-            "resource",
         ]
         read_only_fields = [
             "id",
             "owner",
             "created_at",
             "updated_at"
+        ]
+        
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+        fields = [
+            "id",
+            "note",
+            "title",
+            "url",
+            "resource_type",
+            "description",
+            "created_at"
+        ]
+        read_only_fields  = [
+            "id",
+            "created_at",
         ]
