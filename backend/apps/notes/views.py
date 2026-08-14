@@ -5,12 +5,16 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Note, Resource
 from .serializer import NoteSerializer, ResourceSerializer
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import SearchFilter
 
 # Create your views here.
 
 class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
+    
+    filter_backends = [SearchFilter]
+    search_fields = ["title", "content"]
     
     def get_queryset(self):
         return Note.objects.filter(owner = self.request.user)
