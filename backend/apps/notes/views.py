@@ -6,6 +6,7 @@ from .models import Note, Resource
 from .serializer import NoteSerializer, ResourceSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
 # Create your views here.
 
@@ -13,7 +14,10 @@ class NoteViewSet(viewsets.ModelViewSet):
     serializer_class = NoteSerializer
     permission_classes = [IsAuthenticated]
     
-    filter_backends = [SearchFilter]
+    filter_backends = [DjangoFilterBackend,
+                       SearchFilter]
+    
+    filterset_fields = ["category" , "tags"]
     search_fields = ["title", "content"]
     
     def get_queryset(self):
