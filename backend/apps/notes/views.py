@@ -8,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
+
 # Create your views here.
 
 class NoteViewSet(viewsets.ModelViewSet):
@@ -17,7 +18,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend,
                        SearchFilter]
     
-    filterset_fields = ["category", "tags", "status"]
+    filterset_fields = ["category", "tags", "status", "is_favourite"]
     search_fields = ["title", "content"]
     
     def get_queryset(self):
@@ -32,6 +33,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(is_archived = False)
         
         return queryset
+            
     
     def perform_create(self, serializer):
         serializer.save(owner= self.request.user) 

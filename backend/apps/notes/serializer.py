@@ -13,6 +13,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "tags",
             "status",
             "is_archived",
+            "is_favourite",
             "created_at",
             "updated_at",
         ]
