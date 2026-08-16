@@ -10,6 +10,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from .filters import NoteFilter
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from .dashboard_serializers import DashboardSerializer
+
 
 # Create your views here.
 
@@ -48,3 +52,25 @@ class ResourceViewSet(viewsets.ModelViewSet):
             )
         serializer.save()
         
+        
+class DashboardView(ApiView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        notes = Note.objects.filter(owner= request.user)
+        
+        data = {
+            "totl_count" : notes.coutn(),
+            "learning" : notes.filter(status = "LEARNING").count(),
+            "learned " : notes.filter(status = "LEARNED").count(),
+            "review" : notes.filter(status = "REVIEW").count(),
+            "is_favourite" : notes.filter(is_favourite = True).count(),
+            "is_archived" : notes.filter(is_archived= True),
+            "categories" :notes.values("category").distinct().count(),
+            
+        }
+        
+        serializer = DashboardSerializer(data = data)
+        serializer.is_valid(raise_exception=True)
+    
+        return Response(serializer.validated_data)
