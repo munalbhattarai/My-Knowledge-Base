@@ -10,9 +10,10 @@ class NoteSerializer(serializers.ModelSerializer):
             "title",
             "content",
             "owner",
+            "tags",
+            "status",
             "created_at",
             "updated_at",
-            "tags",
         ]
         read_only_fields = [
             "id",

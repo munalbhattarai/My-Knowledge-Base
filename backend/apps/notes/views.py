@@ -17,7 +17,7 @@ class NoteViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend,
                        SearchFilter]
     
-    filterset_fields = ["category" , "tags"]
+    filterset_fields = ["category", "tags", "status"]
     search_fields = ["title", "content"]
     
     def get_queryset(self):

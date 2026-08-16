@@ -16,12 +16,19 @@ class Tag(models.Model):
     
 
 class Note(models.Model):
+    STATUS_CHOICES = [
+        ("LEARNING", "Learning"),
+        ("LEARNED", "Learned"),
+        ("REVIEW", "Review"),
+    ]
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notes")
     category = models.ForeignKey(Category , on_delete=models.SET_NULL, null=True ,blank=True,   related_name="notes")
     tags = models.ManyToManyField(Tag, blank=True, related_name="notes")
     
     title = models.CharField(max_length=225)
     content = models.TextField()
+    
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES, default="LEARNING")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)
