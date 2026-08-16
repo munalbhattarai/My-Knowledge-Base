@@ -21,6 +21,7 @@ class Note(models.Model):
         ("LEARNED", "Learned"),
         ("REVIEW", "Review"),
     ]
+    
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notes")
     category = models.ForeignKey(Category , on_delete=models.SET_NULL, null=True ,blank=True,   related_name="notes")
     tags = models.ManyToManyField(Tag, blank=True, related_name="notes")
@@ -29,6 +30,8 @@ class Note(models.Model):
     content = models.TextField()
     
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default="LEARNING")
+    
+    is_archived = models.BooleanField(default= False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)

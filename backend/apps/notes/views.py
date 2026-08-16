@@ -21,7 +21,17 @@ class NoteViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "content"]
     
     def get_queryset(self):
-        return Note.objects.filter(owner = self.request.user)
+        queryset =  Note.objects.filter(owner = self.request.user)
+        
+        archived = self.request.query_params.get("archived")
+        
+        if archived == "true":
+            queryset = queryset.filter(is_archived = True)
+            
+        else :
+            queryset = queryset.filter(is_archived = False)
+        
+        return queryset
     
     def perform_create(self, serializer):
         serializer.save(owner= self.request.user) 
