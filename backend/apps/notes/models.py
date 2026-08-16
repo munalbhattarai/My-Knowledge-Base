@@ -64,3 +64,38 @@ class Resource(models.Model):
     def __str__(self):
         return self.title
         
+class CodeSnippet(models.Model):
+    LANGUAGE_CHOICES = [
+        ("PYTHON", "Python"),
+        ("JAVASCRIPT", "JavaScript"),
+        ("TYPESCRIPT", "TypeScript"),
+        ("HTML", "HTML"),
+        ("CSS", "CSS"),
+        ("SQL", "SQL"),
+        ("BASH", "Bash"),
+        ("JSON", "JSON"),
+        ("OTHER", "Other"),
+    ]
+
+    note = models.ForeignKey(
+        Note,
+        on_delete=models.CASCADE,
+        related_name="code_snippets"
+    )
+
+    title = models.CharField(max_length=255)
+
+    code = models.TextField()
+
+    language = models.CharField(
+        max_length=20,
+        choices=LANGUAGE_CHOICES,
+        default="OTHER"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title

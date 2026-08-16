@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Note, Resource
+from .models import Note, Resource, CodeSnippet
 from .serializer import NoteSerializer, ResourceSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
@@ -13,6 +13,8 @@ from .filters import NoteFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .dashboard_serializers import DashboardSerializer
+
+
 
 
 # Create your views here.
@@ -53,7 +55,7 @@ class ResourceViewSet(viewsets.ModelViewSet):
         serializer.save()
         
         
-class DashboardView(ApiView):
+class DashboardView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
@@ -74,3 +76,19 @@ class DashboardView(ApiView):
         serializer.is_valid(raise_exception=True)
     
         return Response(serializer.validated_data)
+    
+class CodeSnippetViewSet(viewsets.ModelViewSet):
+    serializer_class = CodeSnippet
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return CodeSnippet.objects.filter(
+            note__owner = self.request.user
+        )
+    def perform_create(self, serializer):
+        note = serializer.validated_data["note"]
+        
+        if note.owner != self.request.user:
+            raise ValidationError("You cannot add the code snippet to other user's Note")
+        
+        serializer.save()
