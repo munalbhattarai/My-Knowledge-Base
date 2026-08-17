@@ -1,6 +1,44 @@
 from rest_framework import serializers
+
 from .models import Note, Resource, CodeSnippet
-from .serializer import ResourceSerializer, CodeSnippetSerializer
+
+
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+        fields = [
+            "id",
+            "note",
+            "title",
+            "url",
+            "resource_type",
+            "description",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+        ]
+
+
+class CodeSnippetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CodeSnippet
+        fields = [
+            "id",
+            "note",
+            "title",
+            "code",
+            "language",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+        ]
+
 
 class NoteSerializer(serializers.ModelSerializer):
     resources = ResourceSerializer(many=True, read_only=True)
@@ -23,7 +61,6 @@ class NoteSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
-
         read_only_fields = [
             "id",
             "owner",
@@ -33,9 +70,8 @@ class NoteSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
+
 class NoteListSerializer(serializers.ModelSerializer):
-    resources = ResourceSerializer(many=True, read_only= True)
-    code_snippets = CodeSnippetSerializer(many=True, read_only = True)
     class Meta:
         model = Note
         fields = [
@@ -46,51 +82,13 @@ class NoteListSerializer(serializers.ModelSerializer):
             "tags",
             "status",
             "is_archived",
-            "is_favourite",
+            "is_favorite",
             "created_at",
             "updated_at",
         ]
         read_only_fields = [
             "id",
             "owner",
-            "resource",
-            "code_snippets",
-            "created_at",
-            "updated_at"
-        ]
-        
-class ResourceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Resource
-        fields = [
-            "id",
-            "note",
-            "title",
-            "url",
-            "resource_type",
-            "description",
-            "created_at"
-        ]
-        read_only_fields  = [
-            "id",
-            "created_at",
-        ]
-        
-class CodeSnippetSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CodeSnippet
-        fields = [
-            "id",
-            "note",
-            "title",
-            "code",
-            "language",
-            "created_at",
-            "updated_at",
-        ]
-
-        read_only_fields = [
-            "id",
             "created_at",
             "updated_at",
         ]
