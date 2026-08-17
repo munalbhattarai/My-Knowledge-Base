@@ -1,14 +1,47 @@
 from rest_framework import serializers
 from .models import Note, Resource, CodeSnippet
+from .serializer import ResourceSerializer, CodeSnippetSerializer
 
 class NoteSerializer(serializers.ModelSerializer):
+    resources = ResourceSerializer(many=True, read_only=True)
+    code_snippets = CodeSnippetSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Note
+        fields = [
+            "id",
+            "title",
+            "content",
+            "owner",
+            "category",
+            "tags",
+            "status",
+            "is_archived",
+            "is_favorite",
+            "resources",
+            "code_snippets",
+            "created_at",
+            "updated_at",
+        ]
+
+        read_only_fields = [
+            "id",
+            "owner",
+            "resources",
+            "code_snippets",
+            "created_at",
+            "updated_at",
+        ]
+
+class NoteListSerializer(serializers.ModelSerializer):
+    resources = ResourceSerializer(many=True, read_only= True)
+    code_snippets = CodeSnippetSerializer(many=True, read_only = True)
     class Meta:
         model = Note
         fields = [
             "id",
             "category",
             "title",
-            "content",
             "owner",
             "tags",
             "status",
@@ -20,6 +53,8 @@ class NoteSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "owner",
+            "resource",
+            "code_snippets",
             "created_at",
             "updated_at"
         ]

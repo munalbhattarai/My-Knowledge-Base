@@ -3,7 +3,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Note, Resource, CodeSnippet
-from .serializer import NoteSerializer, ResourceSerializer
+from .serializer import NoteSerializer, ResourceSerializer, NoteListSerializer, CodeSnippetSerializer
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
@@ -20,7 +20,7 @@ from .dashboard_serializers import DashboardSerializer
 # Create your views here.
 
 class NoteViewSet(viewsets.ModelViewSet):
-    serializer_class = NoteSerializer
+
     permission_classes = [IsAuthenticated]
     
     filter_backends = [DjangoFilterBackend,
@@ -30,7 +30,26 @@ class NoteViewSet(viewsets.ModelViewSet):
     search_fields = ["title", "content"]
     
     def get_queryset(self):
-        return Note.objects.filter(owner = self.request.user)
+        queryset = Note.objects.filter(
+        owner=self.request.user
+    ).select_related("category")
+
+        if self.action == "retrieve":
+            queryset = queryset.prefetch_related(
+            "tags",
+            "resources",
+            "code_snippets",
+        )
+
+        return queryset
+                    
+        
+                    
+        
+    def get_serializer_class(self):
+        if self.action == "list":
+            return NoteListSerializer
+        return NoteSerializer
         
     
     def perform_create(self, serializer):
@@ -78,7 +97,7 @@ class DashboardView(APIView):
         return Response(serializer.validated_data)
     
 class CodeSnippetViewSet(viewsets.ModelViewSet):
-    serializer_class = CodeSnippet
+    serializer_class = CodeSnippetSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):

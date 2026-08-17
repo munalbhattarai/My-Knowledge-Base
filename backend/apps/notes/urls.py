@@ -5,7 +5,7 @@ from django.urls import path
 router = DefaultRouter()
 router.register("notes", NoteViewSet, basename="note")
 router.register("resources", ResourceViewSet, basename="resource")
-router.register("code-snippet", CodeSnippetViewSet, basename="code-snippet" )
+router.register("code-snippets", CodeSnippetViewSet, basename="code-snippet" )
 
 urlpatterns = [
     path("dashboard/", DashboardView.as_view(), name="dashboard"),
