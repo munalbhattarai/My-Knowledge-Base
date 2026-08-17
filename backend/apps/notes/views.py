@@ -40,11 +40,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             "resources",
             "code_snippets",
         )
-
-        return queryset
-                    
-        
-                    
+        return queryset           
         
     def get_serializer_class(self):
         if self.action == "list":
@@ -81,7 +77,7 @@ class DashboardView(APIView):
         notes = Note.objects.filter(owner= request.user)
         
         data = {
-            "totl_count" : notes.coutn(),
+            "total_count" : notes.coutn(),
             "learning" : notes.filter(status = "LEARNING").count(),
             "learned " : notes.filter(status = "LEARNED").count(),
             "review" : notes.filter(status = "REVIEW").count(),
