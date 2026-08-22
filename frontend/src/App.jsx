@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react'
+import { lazy, Suspense, useEffect, useRef } from 'react'
 import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { ProtectedRoute } from '@/routes/ProtectedRoute'
@@ -118,18 +118,21 @@ function AppRoutes() {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated)
   const user = useSelector((state) => state.auth.user)
   const entities = useSelector((state) => state.entities)
+  const profileDispatched = useRef(false)
+  const entitiesDispatched = useRef(false)
 
   useEffect(() => {
     dispatch(bootstrap()).catch(() => {})
   }, [dispatch])
 
-  // Profile + category/tag registry are fetched whenever an authenticated
-  // session exists — on a fresh reload, and again right after a login (the
-  // bootstrap effect above only runs once on mount).
   useEffect(() => {
     if (!isAuthenticated) return
-    if (!user) dispatch(loadProfile()).catch(() => {})
-    if (!entities.loaded && !entities.loading) {
+    if (!user && !profileDispatched.current) {
+      profileDispatched.current = true
+      dispatch(loadProfile()).catch(() => {})
+    }
+    if (!entities.loaded && !entities.loading && !entitiesDispatched.current) {
+      entitiesDispatched.current = true
       const timer = setTimeout(
         () => {
           dispatch(loadEntities()).catch(() => {})
@@ -139,6 +142,13 @@ function AppRoutes() {
       return () => clearTimeout(timer)
     }
   }, [dispatch, isAuthenticated, user, entities.loaded, entities.loading, entities.failed])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      profileDispatched.current = false
+      entitiesDispatched.current = false
+    }
+  }, [isAuthenticated])
 
   return <RouterProvider router={router} />
 }

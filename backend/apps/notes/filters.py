@@ -8,6 +8,6 @@ class NoteFilter(django_filters.FilterSet):
             "category",
             "tags",
             "status",
-            "is_favourite",
+            "is_favorite",
             "is_archived",
         ]

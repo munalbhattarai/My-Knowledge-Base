@@ -2,6 +2,18 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { authApi } from '@/api/authApi'
 import { tokenStore } from '@/api/client'
 
+const normalizeError = (error) => {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+  const data = error?.response?.data || error?.data
+  if (data?.detail) return data.detail
+  if (data?.non_field_errors?.[0]) return data.non_field_errors[0]
+  if (data?.username?.[0]) return data.username[0]
+  if (data?.password?.[0]) return data.password[0]
+  if (data?.email?.[0]) return data.email[0]
+  return error?.message || 'An unexpected error occurred.'
+}
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials, { rejectWithValue, dispatch }) => {
@@ -11,7 +23,7 @@ export const login = createAsyncThunk(
       dispatch(loadProfile()).catch(() => {})
       return { username: credentials.username }
     } catch (error) {
-      return rejectWithValue(error)
+      return rejectWithValue(normalizeError(error))
     }
   },
 )
@@ -20,12 +32,10 @@ export const register = createAsyncThunk(
   'auth/register',
   async (payload, { rejectWithValue }) => {
     try {
-      // Registration never signs you in. The account is created, then the user
-      // is taken to the login page to sign in explicitly.
       const data = await authApi.register(payload)
       return { username: data.username || payload.username, email: data.email || payload.email }
     } catch (error) {
-      return rejectWithValue(error)
+      return rejectWithValue(normalizeError(error))
     }
   },
 )
@@ -37,7 +47,7 @@ export const loadProfile = createAsyncThunk(
       const profile = await authApi.profile()
       return profile
     } catch (error) {
-      return rejectWithValue(error)
+      return rejectWithValue(normalizeError(error))
     }
   },
 )

@@ -3,8 +3,6 @@ import { motion } from 'framer-motion'
 const VIEW_W = 340
 const VIEW_H = 280
 
-// A constellation of the topics a developer collects. The centre node is the
-// knowledge base itself; everything else links back to it.
 const CENTER = { x: 162, y: 148 }
 
 const NODES = [
@@ -38,22 +36,22 @@ const byId = Object.fromEntries(NODES.map((n) => [n.id, n]))
 
 function ConsoleStatus() {
   return (
-    <div className="mono w-full rounded-lg border border-line bg-surface px-4 py-3 text-[12px] leading-6">
-      <p className="text-fg-subtle">
-        $ <span className="text-fg-secondary">lumen</span> init --knowledge
+    <div className="mono w-full rounded-2xl border border-slate-200/90 bg-white/80 backdrop-blur-md px-4 py-3 text-[12px] leading-6 shadow-sm">
+      <p className="text-slate-500 font-medium">
+        $ <span className="font-bold text-slate-800">kb</span> init --knowledge
       </p>
-      <p className="text-fg-secondary">
-        <span className="mr-2 text-ok">✓</span>
-        <span className="text-fg-subtle">notes indexed</span>
+      <p className="text-slate-700 font-semibold">
+        <span className="mr-2 text-emerald-500 font-bold">✓</span>
+        <span className="text-slate-600">notes indexed</span>
       </p>
-      <p className="text-fg-secondary">
-        <span className="mr-2 text-ok">✓</span>
-        <span className="text-fg-subtle">categories &amp; tags linked</span>
+      <p className="text-slate-700 font-semibold">
+        <span className="mr-2 text-emerald-500 font-bold">✓</span>
+        <span className="text-slate-600">categories &amp; tags linked</span>
       </p>
-      <p className="text-fg-subtle">
+      <p className="text-slate-500">
         ${' '}
         <motion.span
-          className="inline-block text-accent"
+          className="inline-block text-cyan-600 font-bold"
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.9, repeat: Infinity, repeatType: 'reverse' }}
         >
@@ -80,10 +78,10 @@ export function AuthVisual() {
           cy={CENTER.y}
           r={112}
           fill="none"
-          stroke="var(--color-line-strong)"
-          strokeOpacity={0.55}
+          stroke="#cbd5e1"
+          strokeOpacity={0.6}
           strokeWidth={1}
-          strokeDasharray="2 7"
+          strokeDasharray="3 6"
         />
 
         {NODES.map((n) => (
@@ -93,9 +91,9 @@ export function AuthVisual() {
             y1={CENTER.y}
             x2={n.x}
             y2={n.y}
-            stroke="var(--color-accent)"
-            strokeOpacity={0.16}
-            strokeWidth={1}
+            stroke="#06b6d4"
+            strokeOpacity={0.35}
+            strokeWidth={1.5}
           />
         ))}
 
@@ -106,46 +104,47 @@ export function AuthVisual() {
             y1={byId[a].y}
             x2={byId[b].x}
             y2={byId[b].y}
-            stroke="var(--color-line-strong)"
-            strokeOpacity={0.6}
+            stroke="#cbd5e1"
+            strokeOpacity={0.8}
             strokeWidth={1}
           />
         ))}
 
         {/* centre glow */}
-        <circle cx={CENTER.x} cy={CENTER.y} r={14} fill="var(--color-accent-soft)" />
-        <circle cx={CENTER.x} cy={CENTER.y} r={5.5} fill="var(--color-accent)" />
+        <circle cx={CENTER.x} cy={CENTER.y} r={16} fill="rgba(6, 182, 212, 0.15)" />
+        <circle cx={CENTER.x} cy={CENTER.y} r={6} fill="#06b6d4" />
         <motion.circle
           cx={CENTER.x}
           cy={CENTER.y}
           fill="none"
-          stroke="var(--color-accent)"
-          strokeOpacity={0.45}
+          stroke="#06b6d4"
+          strokeOpacity={0.5}
           strokeWidth={1.5}
           initial={{ r: 9, opacity: 0.6 }}
-          animate={{ r: 34, opacity: 0 }}
+          animate={{ r: 36, opacity: 0 }}
           transition={{ duration: 2.2, repeat: Infinity, ease: 'easeOut', delay: 1 }}
         />
         <text
-          x={CENTER.x + 12}
+          x={CENTER.x + 14}
           y={CENTER.y + 4}
-          fontSize={10}
+          fontSize={11}
           fontFamily="var(--font-mono)"
-          fontWeight={600}
-          fill="var(--color-accent)"
+          fontWeight={700}
+          fill="#0891b2"
         >
-          lumen
+          kb
         </text>
 
         {NODES.map((n) => (
           <g key={n.id}>
-            <circle cx={n.x} cy={n.y} r={3} fill="var(--color-fg-secondary)" />
+            <circle cx={n.x} cy={n.y} r={3.5} fill="#8b5cf6" />
             <text
               x={n.x + 7}
               y={n.y + 3}
-              fontSize={9}
+              fontSize={9.5}
               fontFamily="var(--font-mono)"
-              fill="var(--color-fg-faint)"
+              fontWeight={600}
+              fill="#475569"
             >
               {n.label}
             </text>

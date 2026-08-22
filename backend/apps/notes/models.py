@@ -32,7 +32,7 @@ class Note(models.Model):
     status = models.CharField(max_length=100, choices=STATUS_CHOICES, default="LEARNING")
     
     is_archived = models.BooleanField(default= False)
-    is_favourite = models.BooleanField(default=False)
+    is_favorite = models.BooleanField(default=False)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)
@@ -56,7 +56,7 @@ class Resource(models.Model):
     resource_type = models.CharField(
         max_length=100,
         choices=RESOURCE_TYPES,
-        default= "OTHER"
+        default="OTHERS"
     )
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

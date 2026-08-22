@@ -53,6 +53,9 @@ api.interceptors.request.use((config) => {
 })
 
 let refreshing = null
+let refreshExpiry = 0
+
+const REFRESH_TIMEOUT = 30000
 
 const refreshTokens = async () => {
   const refresh = tokenStore.getRefresh()
@@ -72,14 +75,18 @@ api.interceptors.response.use(
 
     if (response?.status === 401 && config && !config._retry && !isLoginOrRefresh) {
       config._retry = true
+      const now = Date.now()
+      if (!refreshing || now > refreshExpiry) {
+        refreshing = refreshTokens()
+        refreshExpiry = now + REFRESH_TIMEOUT
+      }
       try {
-        refreshing = refreshing || refreshTokens()
         const access = await refreshing
-        refreshing = null
         config.headers.Authorization = `Bearer ${access}`
         return api(config)
       } catch (err) {
         refreshing = null
+        refreshExpiry = 0
         onAuthFailure()
         return Promise.reject(err)
       }
@@ -100,6 +107,10 @@ export const httpError = (error) => {
       return { code: 'VALIDATION', message: first || 'Please check the form and try again.' }
     }
     return { code: 'VALIDATION', message: 'Please check the form and try again.' }
+  }
+  if (status === 500) {
+    const detail = data?.detail || data?.error || (typeof data === 'string' ? data : null)
+    return { code: 'SERVER', message: detail || 'The server encountered an error. Please try again.' }
   }
   return { code: 'NETWORK', message: 'Something went wrong. Check the backend is running.' }
 }
