@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useSelector } from 'react-redux'
-import { Plus, ArrowRight, Star, Clock3, Layers, NotebookPen, Sparkles } from 'lucide-react'
+import { Plus, ArrowRight, Star, Clock3, NotebookPen, Sparkles } from 'lucide-react'
 import Button from '@/components/common/Button'
 import { dashboardApi } from '@/api/dashboardApi'
 import { notesApi } from '@/api/notesApi'
@@ -61,7 +61,6 @@ function NoteRow({ note, onOpen }) {
 export default function DashboardPage() {
   const navigate = useNavigate()
   const user = useSelector((state) => state.auth.user)
-  const categories = useSelector((state) => state.entities.categories)
 
   const [stats, setStats] = useState(null)
   const [recent, setRecent] = useState(null)
@@ -275,34 +274,6 @@ export default function DashboardPage() {
                     />
                   </div>
                 </div>
-              </section>
-
-              {/* Categories Quick List */}
-              <section>
-                <h2 className="mb-3 flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 px-1">
-                  <Layers size={16} className="text-cyan-600" />
-                  Categories
-                </h2>
-                {categories.length === 0 ? (
-                  <p className="text-[13px] font-medium text-slate-400 px-1">No categories yet.</p>
-                ) : (
-                  <div className="flex flex-col gap-1 rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-md p-2 shadow-md shadow-slate-200/40">
-                    {categories.map((category) => (
-                      <button
-                        key={category.id}
-                        type="button"
-                        onClick={() => navigate(`/app/category/${category.id}`)}
-                        className="group flex items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-slate-100/70"
-                      >
-                        <span className="h-2 w-2 rounded-full bg-slate-300 transition-colors group-hover:bg-cyan-500" />
-                        <span className="flex-1 truncate text-[13px] font-semibold text-slate-700 group-hover:text-slate-900">
-                          {category.name}
-                        </span>
-                        <ArrowRight size={13} className="text-slate-400 opacity-0 transition-opacity group-hover:opacity-100" />
-                      </button>
-                    ))}
-                  </div>
-                )}
               </section>
             </aside>
           </div>

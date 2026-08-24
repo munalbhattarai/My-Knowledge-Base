@@ -3,10 +3,23 @@ import { authApi } from '@/api/authApi'
 import { tokenStore } from '@/api/client'
 
 const normalizeError = (error) => {
+  if (error?.response?.status === 401 || error?.status === 401) {
+    return 'Incorrect username or password.'
+  }
   if (error instanceof Error) return error.message
-  if (typeof error === 'string') return error
+  if (typeof error === 'string') {
+    if (error === 'No active account found with the given credentials') {
+      return 'Incorrect username or password.'
+    }
+    return error
+  }
   const data = error?.response?.data || error?.data
-  if (data?.detail) return data.detail
+  if (data?.detail) {
+    if (data.detail === 'No active account found with the given credentials') {
+      return 'Incorrect username or password.'
+    }
+    return data.detail
+  }
   if (data?.non_field_errors?.[0]) return data.non_field_errors[0]
   if (data?.username?.[0]) return data.username[0]
   if (data?.password?.[0]) return data.password[0]
@@ -45,6 +58,18 @@ export const loadProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const profile = await authApi.profile()
+      return profile
+    } catch (error) {
+      return rejectWithValue(normalizeError(error))
+    }
+  },
+)
+
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const profile = await authApi.updateProfile(payload)
       return profile
     } catch (error) {
       return rejectWithValue(normalizeError(error))
@@ -112,6 +137,9 @@ const authSlice = createSlice({
       })
       .addCase(loadProfile.fulfilled, (state, action) => {
         state.user = action.payload
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.user = { ...state.user, ...action.payload }
       })
       .addCase(bootstrap.fulfilled, (state, action) => {
         state.bootstrapped = true

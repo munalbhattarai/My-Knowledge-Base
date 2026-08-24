@@ -151,7 +151,11 @@ class NoteSerializer(serializers.ModelSerializer):
             return None
         if isinstance(value, Category):
             return value
+        user = self.context.get("request").user if self.context.get("request") else None
         try:
+            if user and not user.is_anonymous:
+                from django.db.models import Q
+                return Category.objects.get(Q(owner=user) | Q(owner__isnull=True), pk=value)
             return Category.objects.get(pk=value)
         except Category.DoesNotExist:
             raise serializers.ValidationError(f"Category with id {value} does not exist.")
@@ -162,7 +166,12 @@ class NoteSerializer(serializers.ModelSerializer):
             return []
         if value and isinstance(value[0], Tag):
             return value
-        tags = list(Tag.objects.filter(pk__in=value))
+        user = self.context.get("request").user if self.context.get("request") else None
+        if user and not user.is_anonymous:
+            from django.db.models import Q
+            tags = list(Tag.objects.filter(Q(owner=user) | Q(owner__isnull=True), pk__in=value))
+        else:
+            tags = list(Tag.objects.filter(pk__in=value))
         if len(tags) != len(value):
             raise serializers.ValidationError("One or more tag IDs are invalid.")
         return tags

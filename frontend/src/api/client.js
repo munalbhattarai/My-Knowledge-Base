@@ -96,9 +96,10 @@ api.interceptors.response.use(
 )
 
 export const httpError = (error) => {
+  if (typeof error === 'string') return { code: 'UNAUTHORIZED', message: error }
   const status = error?.response?.status ?? error?.status
   const data = error?.response?.data ?? error?.data
-  if (status === 401) return { code: 'UNAUTHORIZED', message: 'Invalid username or password.' }
+  if (status === 401) return { code: 'UNAUTHORIZED', message: 'Incorrect username or password.' }
   if (status === 403) return { code: 'FORBIDDEN', message: 'You do not have permission to do that.' }
   if (status === 404) return { code: 'NOT_FOUND', message: 'That resource could not be found.' }
   if (status === 400) {

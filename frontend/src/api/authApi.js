@@ -32,4 +32,10 @@ export const authApi = {
     const { data } = await api.get('/accounts/profile/')
     return data
   },
+
+  async updateProfile(payload) {
+    if (USE_MOCK) return mockApi.updateProfile(payload)
+    const { data } = await api.patch('/accounts/profile/', payload)
+    return data
+  },
 }

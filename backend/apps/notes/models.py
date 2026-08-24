@@ -3,13 +3,25 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="categories", null=True, blank=True)
+    name = models.CharField(max_length=100)
     
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "name"], name="unique_user_category")
+        ]
+
     def __str__(self):
         return self.name
     
 class Tag(models.Model):
-    name = models.CharField(max_length=50 , unique=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tags", null=True, blank=True)
+    name = models.CharField(max_length=50)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["owner", "name"], name="unique_user_tag")
+        ]
     
     def __str__(self):
         return self.name

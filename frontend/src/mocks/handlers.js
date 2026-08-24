@@ -137,9 +137,30 @@ export const mockApi = {
   async profile() {
     await latency()
     if (currentUser) {
-      return { id: currentUser.id, username: currentUser.username, email: currentUser.email }
+      return {
+        id: currentUser.id,
+        username: currentUser.username,
+        email: currentUser.email,
+        first_name: currentUser.first_name || '',
+        last_name: currentUser.last_name || '',
+      }
     }
     return clone(user)
+  },
+
+  async updateProfile(payload) {
+    await latency()
+    if (currentUser) {
+      currentUser = { ...currentUser, ...payload }
+      return {
+        id: currentUser.id,
+        username: currentUser.username,
+        email: currentUser.email,
+        first_name: currentUser.first_name || '',
+        last_name: currentUser.last_name || '',
+      }
+    }
+    throw new MockApiError(401, { detail: 'Unauthorized' })
   },
 
   async listNotes(params = {}) {
@@ -273,21 +294,23 @@ export const mockApi = {
 
   async categories() {
     await latency()
-    return clone(categoryStore)
+    return clone(currentUser ? categoryStore.filter((c) => !c.owner || c.owner === currentUser.id) : categoryStore)
   },
 
   async tags() {
     await latency()
-    return clone(tagStore)
+    return clone(currentUser ? tagStore.filter((t) => !t.owner || t.owner === currentUser.id) : tagStore)
   },
 
   async createCategory(name) {
     await latency()
     const trimmed = String(name || '').trim()
     if (!trimmed) throw new MockApiError(400, { name: ['This field is required.'] })
-    const existing = categoryStore.find((c) => c.name.toLowerCase() === trimmed.toLowerCase())
+    const existing = categoryStore.find(
+      (c) => c.name.toLowerCase() === trimmed.toLowerCase() && (!currentUser || c.owner === currentUser.id),
+    )
     if (existing) return clone(existing)
-    const category = { id: nextEntityId++, name: trimmed }
+    const category = { id: nextEntityId++, name: trimmed, owner: currentUser?.id }
     categoryStore = [...categoryStore, category]
     return clone(category)
   },
@@ -296,9 +319,11 @@ export const mockApi = {
     await latency()
     const trimmed = String(name || '').trim()
     if (!trimmed) throw new MockApiError(400, { name: ['This field is required.'] })
-    const existing = tagStore.find((t) => t.name.toLowerCase() === trimmed.toLowerCase())
+    const existing = tagStore.find(
+      (t) => t.name.toLowerCase() === trimmed.toLowerCase() && (!currentUser || t.owner === currentUser.id),
+    )
     if (existing) return clone(existing)
-    const tag = { id: nextEntityId++, name: trimmed }
+    const tag = { id: nextEntityId++, name: trimmed, owner: currentUser?.id }
     tagStore = [...tagStore, tag]
     return clone(tag)
   },

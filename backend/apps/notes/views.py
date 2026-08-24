@@ -71,22 +71,19 @@ class CategoryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
     search_fields = ["name"]
-    # The registry must be complete (it resolves note category names), so never
-    # paginate it — return every category.
+    # Return user's categories without pagination.
     pagination_class = None
 
     def get_queryset(self):
-        # Categories are a shared registry: notes only store a raw category id
-        # and the frontend resolves names from this list, so every category must
-        # be returned — including ones no note references yet.
-        return Category.objects.order_by("name")
+        return Category.objects.filter(owner=self.request.user).order_by("name")
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
-        # Names are globally unique; treat a duplicate as an idempotent "return
-        # the existing category" instead of a 400 so the editor can select it.
         name = request.data.get("name", "").strip()
         if name:
-            existing = Category.objects.filter(name__iexact=name).first()
+            existing = Category.objects.filter(owner=request.user, name__iexact=name).first()
             if existing:
                 return Response(self.get_serializer(existing).data, status=status.HTTP_200_OK)
         return super().create(request, *args, **kwargs)
@@ -97,17 +94,19 @@ class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     filter_backends = [SearchFilter]
     search_fields = ["name"]
-    # See CategoryViewSet — return every tag, never paginate.
+    # Return user's tags without pagination.
     pagination_class = None
 
     def get_queryset(self):
-        # See CategoryViewSet.get_queryset — same shared-registry reasoning.
-        return Tag.objects.order_by("name")
+        return Tag.objects.filter(owner=self.request.user).order_by("name")
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     def create(self, request, *args, **kwargs):
         name = request.data.get("name", "").strip()
         if name:
-            existing = Tag.objects.filter(name__iexact=name).first()
+            existing = Tag.objects.filter(owner=request.user, name__iexact=name).first()
             if existing:
                 return Response(self.get_serializer(existing).data, status=status.HTTP_200_OK)
         return super().create(request, *args, **kwargs)

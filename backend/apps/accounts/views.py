@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer, UserProfileSerializer
 
 
 # Create your views here.
@@ -35,17 +35,19 @@ class LogoutView(generics.GenericAPIView):
 
 
 class ProfileView(APIView):
-    """Return basic profile info for the currently authenticated user."""
+    """Return basic profile info or update profile for the currently authenticated user."""
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        return Response({
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "date_joined": user.date_joined,
-        })
+        serializer = UserProfileSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = UserProfileSerializer(request.user, data=request.data, partial=True, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def put(self, request):
+        return self.patch(request)
 

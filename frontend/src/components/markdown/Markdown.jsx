@@ -35,9 +35,8 @@ export function Markdown({ content, className }) {
               </code>
             )
           },
-          pre() {
-            // `pre` is handled inside CodeBlock (code component returns the full block)
-            return null
+          pre({ children }) {
+            return <>{children}</>
           },
         }}
       >
