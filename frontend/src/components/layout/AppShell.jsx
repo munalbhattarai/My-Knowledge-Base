@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Menu, Search, SlidersHorizontal } from 'lucide-react'
+import { Menu, Search, Plus } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Sidebar } from './Sidebar'
 import { Logo } from '@/components/common/Logo'
-import { Avatar } from '@/components/common/Avatar'
+import Button from '@/components/common/Button'
 import { setSidebarOpen, setCommandPaletteOpen } from '@/store/slices/uiSlice'
 import { Kbd } from '@/components/common/Kbd'
 import { CommandPalette } from '@/components/command/CommandPalette'
@@ -15,29 +15,27 @@ function TopHeader() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const location = useLocation()
-  const user = useSelector((state) => state.auth.user)
 
-  // Dynamic header title matching Mino aesthetic
-  let title = 'MY NOTES'
+  // Dynamic header title
+  let title = 'KNOWLEDGE BASE'
   if (location.pathname === '/app') title = 'DASHBOARD'
   else if (location.pathname.startsWith('/app/notes/new')) title = 'NEW NOTE'
   else if (location.pathname.includes('/edit')) title = 'EDIT NOTE'
   else if (location.pathname.startsWith('/app/notes/')) title = 'NOTE DETAILS'
+  else if (location.pathname === '/app/notes') title = 'MY NOTES'
   else if (location.pathname === '/app/favorites') title = 'FAVORITES'
   else if (location.pathname === '/app/review') title = 'REVIEW QUEUE'
   else if (location.pathname === '/app/archived') title = 'ARCHIVED'
-  else if (location.pathname === '/app/profile' || location.pathname === '/app/settings') title = 'MY PROFILE'
-
-  const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.username || 'User'
+  else if (location.pathname === '/app/profile' || location.pathname === '/app/settings') title = 'PROFILE & SETTINGS'
 
   return (
     <header className="sticky top-0 z-20 flex h-20 items-center justify-between gap-4 bg-[#f4f6fb]/90 backdrop-blur-md px-4 sm:px-8 lg:px-10">
-      {/* Left: Mobile Menu & Big Bold Page Title (Image 1) */}
+      {/* Left: Mobile Menu & Bold Page Title */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={() => dispatch(setSidebarOpen(true))}
-          className="rounded-2xl p-2 text-slate-600 hover:bg-white hover:text-slate-900 lg:hidden shadow-xs border border-slate-200/80"
+          className="rounded-2xl p-2 text-slate-600 hover:bg-white hover:text-slate-900 lg:hidden shadow-xs border border-slate-200/80 cursor-pointer"
           aria-label="Open menu"
         >
           <Menu size={20} />
@@ -48,49 +46,27 @@ function TopHeader() {
         </h1>
       </div>
 
-      {/* Center: Floating Search Capsule Pill (Image 1) */}
-      <div className="flex-1 max-w-xs sm:max-w-md mx-auto hidden md:block">
-        <button
-          type="button"
-          onClick={() => dispatch(setCommandPaletteOpen(true))}
-          className="flex h-10 w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-white px-4 text-xs font-medium text-slate-400 shadow-xs hover:border-slate-300 hover:shadow-sm transition-all"
-        >
-          <span className="flex items-center gap-2.5">
-            <Search size={15} className="text-slate-400" />
-            <span>Search notes, categories, tags…</span>
-          </span>
-          <Kbd>⌘K</Kbd>
-        </button>
-      </div>
-
-      {/* Right: User Profile Capsule & Actions (Image 1) */}
+      {/* Right: Floating Search Capsule & Quick New Note Action */}
       <div className="flex items-center gap-3 ml-auto">
         <button
           type="button"
           onClick={() => dispatch(setCommandPaletteOpen(true))}
-          className="flex h-10 w-10 md:hidden items-center justify-center rounded-2xl border border-slate-200/80 bg-white text-slate-600 shadow-xs"
-          aria-label="Search"
+          className="flex h-10 items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white px-4 text-xs font-medium text-slate-400 shadow-xs hover:border-slate-300 hover:text-slate-600 transition-all cursor-pointer"
         >
-          <Search size={16} />
+          <Search size={15} className="text-slate-400" />
+          <span className="hidden sm:inline">Search notes, categories, tags…</span>
+          <span className="sm:hidden">Search…</span>
+          <Kbd>⌘K</Kbd>
         </button>
 
-        <div
-          onClick={() => navigate('/app/profile')}
-          className="flex items-center gap-3 cursor-pointer rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-xs hover:border-slate-300 transition-colors"
-          title="View Profile"
+        <Button
+          size="sm"
+          onClick={() => navigate('/app/notes/new')}
+          className="hidden sm:inline-flex"
         >
-          <span className="hidden sm:inline text-xs font-bold text-slate-800 font-display">
-            {displayName}
-          </span>
-          <Avatar name={displayName} size="sm" />
-          <button
-            type="button"
-            className="text-slate-400 hover:text-slate-700 transition-colors"
-            title="Profile & Settings"
-          >
-            <SlidersHorizontal size={14} />
-          </button>
-        </div>
+          <Plus size={15} />
+          <span>New note</span>
+        </Button>
       </div>
     </header>
   )
@@ -140,7 +116,7 @@ export function AppShell() {
     <div className="relative min-h-screen bg-[#f4f6fb] text-slate-800 antialiased">
       <MobileDrawer />
 
-      {/* Floating Desktop Sidebar (Image 1) */}
+      {/* Floating Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 lg:block p-4">
         <Sidebar />
       </aside>
