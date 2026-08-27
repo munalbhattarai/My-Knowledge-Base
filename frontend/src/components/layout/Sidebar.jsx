@@ -6,13 +6,13 @@ import {
   Star,
   Clock3,
   Archive,
-  Settings,
+  User as UserIcon,
   LogOut,
   ChevronsUpDown,
   Layers,
   Hash,
   Plus,
-  Sparkles,
+  Settings,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
 import { Avatar } from '@/components/common/Avatar'
@@ -25,7 +25,7 @@ const NAV_ITEMS = [
   { to: '/app/notes', label: 'All Notes', icon: NotebookPen },
   { to: '/app/favorites', label: 'Favorites', icon: Star },
   { to: '/app/review', label: 'Review Queue', icon: Clock3 },
-  { to: '/app/archived', label: 'Trash / Archive', icon: Archive },
+  { to: '/app/archived', label: 'Archived', icon: Archive },
 ]
 
 function NavLinkItem({ item, onNavigate }) {
@@ -37,9 +37,9 @@ function NavLinkItem({ item, onNavigate }) {
       onClick={onNavigate}
       className={({ isActive }) =>
         cn(
-          'group relative flex h-10 items-center gap-3.5 rounded-2xl px-3.5 text-[13.5px] font-semibold transition-all duration-200 select-none',
+          'group relative flex h-10 items-center gap-3.5 rounded-2xl px-3.5 text-[13.5px] font-semibold transition-all duration-200 select-none cursor-pointer',
           isActive
-            ? 'bg-slate-100/90 text-slate-900 font-bold shadow-xs'
+            ? 'bg-slate-100 text-slate-900 font-bold shadow-2xs'
             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800',
         )
       }
@@ -67,10 +67,10 @@ function CategorySection({ onNavigate }) {
   const navigate = useNavigate()
   const categories = useSelector((state) => state.entities.categories || [])
   if (!categories.length) return null
-  const visible = categories.slice(0, 6)
+  const visible = categories.slice(0, 8)
   const overflow = categories.length - visible.length
 
-  const dotColors = ['bg-[#facc15]', '#f87171', '#38bdf8', '#a855f7', '#4ade80', '#fb923c']
+  const dotColors = ['#facc15', '#f87171', '#38bdf8', '#a855f7', '#4ade80', '#fb923c']
 
   return (
     <div className="mt-6">
@@ -79,16 +79,6 @@ function CategorySection({ onNavigate }) {
           <Layers size={12} className="text-slate-400" />
           Categories
         </p>
-        <button
-          type="button"
-          onClick={() => {
-            navigate('/app/notes?view=categories')
-            onNavigate?.()
-          }}
-          className="text-[11px] font-semibold text-slate-400 hover:text-slate-700"
-        >
-          View all
-        </button>
       </div>
       <div className="flex flex-col gap-0.5">
         {visible.map((category, idx) => (
@@ -110,11 +100,10 @@ function CategorySection({ onNavigate }) {
                 <span
                   className={cn(
                     'h-2 w-2 rounded-full transition-transform',
-                    isActive ? 'scale-125' : '',
+                    isActive ? 'scale-125 ring-2 ring-slate-300' : '',
                   )}
                   style={{
-                    backgroundColor:
-                      idx === 0 ? '#facc15' : idx === 1 ? '#f87171' : idx === 2 ? '#38bdf8' : idx === 3 ? '#a855f7' : '#4ade80',
+                    backgroundColor: dotColors[idx % dotColors.length],
                   }}
                 />
                 <span className="truncate">{category.name}</span>
@@ -144,24 +133,50 @@ function CategorySection({ onNavigate }) {
   )
 }
 
-function UpgradeBanner() {
+function TagSection({ onNavigate }) {
   const navigate = useNavigate()
+  const tags = useSelector((state) => state.entities.tags || [])
+  if (!tags.length) return null
+  const visible = tags.slice(0, 10)
+  const overflow = tags.length - visible.length
+
   return (
-    <div className="mt-auto rounded-3xl bg-[#f8fafc] border border-slate-200/80 p-4 text-center">
-      {/* Decorative avatar / illustration icon */}
-      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-        <Sparkles size={20} />
-      </div>
-      <p className="text-[12px] leading-snug font-medium text-slate-600">
-        Want to access unlimited notes taking experience &amp; features?
+    <div className="mt-5">
+      <p className="mb-2 flex items-center gap-1.5 px-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <Hash size={12} className="text-slate-400" />
+        Tags
       </p>
-      <button
-        type="button"
-        onClick={() => navigate('/app/settings')}
-        className="mt-3 w-full rounded-xl bg-[#1e293b] py-2 text-xs font-bold text-white shadow-sm hover:bg-[#0f172a] transition-colors"
-      >
-        Pro Workspace
-      </button>
+      <div className="flex flex-wrap gap-1 px-3">
+        {visible.map((tag) => (
+          <NavLink
+            key={tag.id}
+            to={`/app/tag/${tag.id}`}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              cn(
+                'rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-all',
+                isActive
+                  ? 'border-slate-800 bg-slate-900 text-white font-semibold'
+                  : 'border-slate-200/80 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+              )
+            }
+          >
+            #{tag.name}
+          </NavLink>
+        ))}
+      </div>
+      {overflow > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            navigate('/app/notes')
+            onNavigate?.()
+          }}
+          className="ml-3 mt-1.5 text-[12px] font-semibold text-slate-500 hover:text-slate-800"
+        >
+          +{overflow} more
+        </button>
+      )}
     </div>
   )
 }
@@ -176,27 +191,31 @@ function UserMenu({ onNavigate }) {
     navigate('/login', { replace: true })
   }
 
+  const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.username || 'Account'
+
   return (
     <Popover
-      width="w-52"
+      width="w-56"
       align="start"
       trigger={({ toggle, open }) => (
         <button
           type="button"
           onClick={toggle}
           className={cn(
-            'flex w-full items-center gap-2.5 rounded-2xl border px-3 py-2.5 transition-all',
+            'flex w-full items-center gap-2.5 rounded-2xl border px-3 py-2.5 transition-all cursor-pointer',
             open
               ? 'border-slate-300 bg-white shadow-sm'
-              : 'border-slate-200/70 bg-white hover:border-slate-300',
+              : 'border-slate-200/80 bg-white hover:border-slate-300',
           )}
         >
-          <Avatar name={user?.username || '?'} size="sm" />
+          <Avatar name={displayName} size="sm" />
           <span className="min-w-0 flex-1 text-left">
             <span className="block truncate text-[13px] font-bold text-slate-900 font-display">
-              {user?.username || 'Account'}
+              {displayName}
             </span>
-            <span className="block text-[11px] text-slate-400 font-medium">Free Plan</span>
+            <span className="block text-[11px] text-slate-400 font-medium truncate">
+              {user?.email || `@${user?.username}`}
+            </span>
           </span>
           <ChevronsUpDown size={14} className="text-slate-400 shrink-0" />
         </button>
@@ -204,6 +223,15 @@ function UserMenu({ onNavigate }) {
     >
       {({ close }) => (
         <div className="bg-white border border-slate-200 rounded-2xl shadow-xl p-1">
+          <MenuItem
+            icon={<UserIcon size={15} />}
+            label="View Profile"
+            onClick={() => {
+              navigate('/app/profile')
+              close()
+              onNavigate?.()
+            }}
+          />
           <MenuItem
             icon={<Settings size={15} />}
             label="Settings"
@@ -233,25 +261,24 @@ export function Sidebar({ onNavigate }) {
         </NavLink>
       </div>
 
-      {/* "Add New" with 3 color dots picker (Matching Image 1) */}
-      <div className="mb-5 rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-3">
+      {/* "Add New" Button with 3 Pastel Color Dots (Image 1) */}
+      <div className="mb-4 rounded-2xl border border-slate-200/80 bg-[#f8fafc] p-3">
         <button
           type="button"
           onClick={() => {
             navigate('/app/notes/new')
             onNavigate?.()
           }}
-          className="flex w-full items-center justify-between gap-2 text-xs font-bold text-slate-800 hover:text-slate-950 transition-colors"
+          className="flex w-full items-center justify-between gap-2 text-xs font-bold text-slate-800 hover:text-slate-950 transition-colors cursor-pointer"
         >
           <span className="flex items-center gap-2">
             <Plus size={15} className="text-slate-700" />
-            Add new
+            Add new note
           </span>
-          {/* 3 Color dots as seen in Image 1 */}
           <div className="flex items-center gap-1">
-            <span className="h-2.5 w-2.5 rounded-full bg-[#facc15] shadow-xs" title="Yellow" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[#38bdf8] shadow-xs" title="Blue" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[#f87171] shadow-xs" title="Coral" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#facc15]" title="Yellow" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#38bdf8]" title="Blue" />
+            <span className="h-2.5 w-2.5 rounded-full bg-[#f87171]" title="Coral" />
           </div>
         </button>
       </div>
@@ -263,13 +290,10 @@ export function Sidebar({ onNavigate }) {
         ))}
 
         <CategorySection onNavigate={onNavigate} />
-
-        <div className="pt-4">
-          <UpgradeBanner />
-        </div>
+        <TagSection onNavigate={onNavigate} />
       </nav>
 
-      {/* User Footer */}
+      {/* User Footer Profile */}
       <div className="pt-3 border-t border-slate-100 mt-2">
         <UserMenu onNavigate={onNavigate} />
       </div>

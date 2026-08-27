@@ -106,6 +106,7 @@ const router = createBrowserRouter([
           { path: 'category/:id', element: <CategoryRoute /> },
           { path: 'tag/:id', element: <TagRoute /> },
           { path: 'settings', element: <SettingsRoute /> },
+          { path: 'profile', element: <SettingsRoute /> },
           { path: '*', element: <Navigate to="/app" replace /> },
         ],
       },

@@ -17,7 +17,7 @@ function TopHeader() {
   const location = useLocation()
   const user = useSelector((state) => state.auth.user)
 
-  // Dynamic header title matching Image 1
+  // Dynamic header title matching Mino aesthetic
   let title = 'MY NOTES'
   if (location.pathname === '/app') title = 'DASHBOARD'
   else if (location.pathname.startsWith('/app/notes/new')) title = 'NEW NOTE'
@@ -26,9 +26,9 @@ function TopHeader() {
   else if (location.pathname === '/app/favorites') title = 'FAVORITES'
   else if (location.pathname === '/app/review') title = 'REVIEW QUEUE'
   else if (location.pathname === '/app/archived') title = 'ARCHIVED'
-  else if (location.pathname === '/app/settings') title = 'SETTINGS'
+  else if (location.pathname === '/app/profile' || location.pathname === '/app/settings') title = 'MY PROFILE'
 
-  const displayName = user?.first_name || user?.username || 'Sayef mahmud'
+  const displayName = user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : user?.username || 'User'
 
   return (
     <header className="sticky top-0 z-20 flex h-20 items-center justify-between gap-4 bg-[#f4f6fb]/90 backdrop-blur-md px-4 sm:px-8 lg:px-10">
@@ -75,8 +75,9 @@ function TopHeader() {
         </button>
 
         <div
-          onClick={() => navigate('/app/settings')}
+          onClick={() => navigate('/app/profile')}
           className="flex items-center gap-3 cursor-pointer rounded-2xl border border-slate-200/80 bg-white px-3 py-1.5 shadow-xs hover:border-slate-300 transition-colors"
+          title="View Profile"
         >
           <span className="hidden sm:inline text-xs font-bold text-slate-800 font-display">
             {displayName}
@@ -85,7 +86,7 @@ function TopHeader() {
           <button
             type="button"
             className="text-slate-400 hover:text-slate-700 transition-colors"
-            title="Settings"
+            title="Profile & Settings"
           >
             <SlidersHorizontal size={14} />
           </button>
