@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus, NotebookPen, SearchX, WifiOff } from 'lucide-react'
+import { Plus, Bookmark, SearchX, WifiOff } from 'lucide-react'
 import { useDispatch } from 'react-redux'
 import { NotesGrid } from '@/components/notes/NotesGrid'
 import { NotesGridSkeleton } from '@/components/notes/NotesGridSkeleton'
@@ -13,10 +13,10 @@ import { useToast } from '@/hooks/useToast'
 import { notesApi } from '@/api/notesApi'
 import { setCommandPaletteOpen } from '@/store/slices/uiSlice'
 
-const LAYOUT_KEY = 'lumen.layout'
+const LAYOUT_KEY = 'mino.layout'
 
 export function NotesPage({
-  title = 'Notes',
+  title = 'All Notes',
   description,
   fixedFilters = {},
   emptyTitle = 'No notes here yet',
@@ -47,16 +47,6 @@ export function NotesPage({
 
   const count = data?.count ?? 0
   const notes = data?.results ?? []
-
-  const effectiveDescription =
-    description ||
-    (fixedFilters.isArchived
-      ? 'Archived notes are tucked away — still searchable, out of the way.'
-      : fixedFilters.isFavorite
-        ? 'Your starred notes, in one place.'
-        : fixedFilters.status === 'REVIEW'
-          ? 'Notes flagged for a second pass.'
-          : 'Everything you are learning, in one place.')
 
   const changeFilter = (key, value) => {
     const next = new URLSearchParams(searchParams)
@@ -104,20 +94,26 @@ export function NotesPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      {/* Header Bar */}
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{title}</h1>
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 font-display">
+              {title}
+            </h2>
             {!loading && data && (
-              <span className="mono rounded-full border border-cyan-200/80 bg-cyan-50/80 px-3 py-0.5 text-xs font-bold text-cyan-700 shadow-xs">
+              <span className="rounded-full bg-white border border-slate-200/80 px-3 py-0.5 text-xs font-bold text-slate-600 shadow-xs font-mono">
                 {count} {count === 1 ? 'note' : 'notes'}
               </span>
             )}
           </div>
-          <p className="mt-1.5 text-[14.5px] font-medium text-slate-500">
-            {effectiveDescription}
-          </p>
+          {description && (
+            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-400">
+              {description}
+            </p>
+          )}
         </div>
+
         <div className="flex items-center gap-3">
           <NotesSearch
             value={search}
@@ -125,7 +121,7 @@ export function NotesPage({
             onOpenCommand={() => dispatch(setCommandPaletteOpen(true))}
           />
           {showCreate && (
-            <Button variant="primary" size="md" onClick={() => navigate('/app/notes/new')}>
+            <Button size="md" onClick={() => navigate('/app/notes/new')}>
               <Plus size={16} />
               <span className="hidden sm:inline">New note</span>
             </Button>
@@ -133,6 +129,7 @@ export function NotesPage({
         </div>
       </header>
 
+      {/* Filter Row */}
       <NotesFilters
         filters={{ status, category, tags: tag, isFavorite }}
         onChange={changeFilter}
@@ -142,6 +139,7 @@ export function NotesPage({
         onLayoutChange={onLayoutChange}
       />
 
+      {/* Content Grid */}
       {error ? (
         <EmptyState
           icon={<WifiOff size={20} />}
@@ -156,22 +154,24 @@ export function NotesPage({
       ) : loading ? (
         <NotesGridSkeleton layout={layout} />
       ) : notes.length === 0 ? (
-        <EmptyState
-          icon={isFiltered ? <SearchX size={20} /> : <NotebookPen size={20} />}
-          title={isFiltered ? 'No notes match' : emptyTitle}
-          description={
-            isFiltered
-              ? 'Try clearing a filter or searching for something else.'
-              : emptyDescription
-          }
-          action={
-            isFiltered ? (
-              <Button variant="outline" onClick={clearFilters}>
-                Clear filters
-              </Button>
-            ) : null
-          }
-        />
+        <div className="rounded-[28px] bg-white border border-slate-200/80 p-8 text-center">
+          <EmptyState
+            icon={isFiltered ? <SearchX size={22} /> : <Bookmark size={22} />}
+            title={isFiltered ? 'No notes match' : emptyTitle}
+            description={
+              isFiltered
+                ? 'Try clearing your active filters or search terms.'
+                : emptyDescription
+            }
+            action={
+              isFiltered ? (
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear filters
+                </Button>
+              ) : null
+            }
+          />
+        </div>
       ) : (
         <>
           <NotesGrid notes={notes} layout={layout} onToggleFavorite={toggleFavorite} onDelete={handleDelete} />

@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/useToast'
 function SettingRow({ icon: Icon, label, value }) {
   return (
     <div className="flex items-center gap-3 py-3.5">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 text-cyan-600">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
         <Icon size={16} />
       </span>
       <div className="min-w-0 flex-1">
@@ -106,32 +106,38 @@ export default function SettingsPage() {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
       <header className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Settings</h1>
-        <p className="mt-1.5 text-[14.5px] font-medium text-slate-500">Your account and preferences.</p>
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-display">
+          Account Settings
+        </h2>
+        <p className="mt-1 text-sm font-medium text-slate-400">
+          Manage your personal workspace and profile preferences.
+        </p>
       </header>
 
       <div className="flex max-w-2xl flex-col gap-8">
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              Profile
-            </h2>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+              Profile Details
+            </h3>
             <Button variant="outline" size="sm" onClick={handleOpenEdit}>
-              <Pencil size={13} className="text-cyan-600" />
+              <Pencil size={13} className="text-slate-700" />
               Edit profile
             </Button>
           </div>
 
-          <div className="flex items-center gap-4 rounded-2xl border border-slate-200/90 bg-white/85 backdrop-blur-md p-5 shadow-md shadow-slate-200/40 mb-3">
+          <div className="flex items-center gap-4 rounded-[28px] border border-slate-200/90 bg-white p-6 shadow-sm mb-3">
             <Avatar name={user?.username || '?'} size="lg" />
             <div className="min-w-0 flex-1">
-              <p className="text-lg font-bold tracking-tight text-slate-900">
+              <p className="text-xl font-bold tracking-tight text-slate-900 font-display">
                 {fullName || user?.username || '…'}
               </p>
-              <p className="truncate text-[13px] font-medium text-slate-500">{user?.email || 'No email on file'}</p>
+              <p className="truncate text-xs font-medium text-slate-400 mt-0.5 font-mono">
+                {user?.email || 'No email configured'}
+              </p>
             </div>
           </div>
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/90 bg-white/85 backdrop-blur-md px-5 shadow-md shadow-slate-200/40">
+          <div className="divide-y divide-slate-100 rounded-[28px] border border-slate-200/90 bg-white px-6 shadow-sm">
             <SettingRow icon={UserIcon} label="Username" value={user?.username || '—'} />
             <SettingRow icon={UserIcon} label="Full name" value={fullName || '—'} />
             <SettingRow icon={Mail} label="Email" value={user?.email || '—'} />
@@ -140,60 +146,59 @@ export default function SettingsPage() {
         </section>
 
         <section>
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-            At a glance
-          </h2>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+            Workspace Stats
+          </h3>
           {stats ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                ['Notes', stats.total_notes],
-                ['Learning', stats.learning],
-                ['Learned', stats.learned],
-                ['Favorites', stats.favorites],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-2xl border border-slate-200/90 bg-white/85 backdrop-blur-md p-4 shadow-sm">
-                  <p className="mono text-2xl font-bold tabular text-slate-900">{value}</p>
-                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
+                ['Total Notes', stats.total_notes, 'bg-[#e0f2fe] text-[#082f49] border-[#bae6fd]'],
+                ['In Learning', stats.learning, 'bg-[#fef9c3] text-[#713f12] border-[#fef08a]'],
+                ['Learned', stats.learned, 'bg-[#dcfce7] text-[#14532d] border-[#bbf7d0]'],
+                ['Favorites', stats.favorites, 'bg-[#f3e8ff] text-[#581c87] border-[#e9d5ff]'],
+              ].map(([label, value, colorClass]) => (
+                <div key={label} className={`rounded-[24px] border p-5 shadow-xs ${colorClass}`}>
+                  <p className="text-2xl font-bold font-mono">{value}</p>
+                  <p className="mt-1 text-[11px] font-bold uppercase tracking-wider opacity-80">{label}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <Skeleton className="h-24 w-full rounded-2xl" />
+            <Skeleton className="h-24 w-full rounded-[24px]" />
           )}
         </section>
 
         <section>
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
-            Preferences
-          </h2>
-          <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/90 bg-white/85 backdrop-blur-md px-5 shadow-md shadow-slate-200/40">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+            Preferences &amp; System
+          </h3>
+          <div className="divide-y divide-slate-100 rounded-[28px] border border-slate-200/90 bg-white px-6 shadow-sm">
             <div className="flex items-center gap-3 py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 text-cyan-600">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                 <Sun size={16} />
               </span>
               <p className="flex-1 text-sm font-semibold text-slate-700">Theme</p>
-              <span className="rounded-full border border-cyan-200/80 bg-cyan-50/80 px-3 py-1 text-[12px] font-bold text-cyan-700 shadow-xs">
-                Soft Glass (Light)
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                Pastel Mino (Light)
               </span>
             </div>
             <div className="flex items-center gap-3 py-3.5">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-slate-100/70 text-cyan-600">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                 <Info size={16} />
               </span>
               <p className="flex-1 text-sm font-semibold text-slate-700">Version</p>
-              <span className="mono text-[12px] font-semibold text-slate-400">v0.1.0</span>
+              <span className="text-xs font-semibold text-slate-400 font-mono">v1.0.0</span>
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
             Session
-          </h2>
-          <div className="rounded-2xl border border-slate-200/90 bg-white/85 backdrop-blur-md p-5 shadow-md shadow-slate-200/40">
-            <p className="text-[13.5px] leading-relaxed text-slate-500">
-              Logging out revokes your session on the server and clears tokens from this device. Your notes stay
-              safe on the server.
+          </h3>
+          <div className="rounded-[28px] border border-slate-200/90 bg-white p-6 shadow-sm">
+            <p className="text-xs leading-relaxed text-slate-500">
+              Logging out ends your current session. All your notes, categories, and review queues remain safely synchronized.
             </p>
             <Button variant="danger" className="mt-4" onClick={handleLogout}>
               <LogOut size={15} />

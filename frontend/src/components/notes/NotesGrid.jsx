@@ -7,9 +7,9 @@ export function NotesGrid({ notes, layout = 'grid', onToggleFavorite, onDelete }
   return (
     <div
       className={cn(
-        'grid gap-3',
-        !isList && 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3',
-        isList && 'grid-cols-1 divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface',
+        'grid gap-5',
+        !isList && 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+        isList && 'grid-cols-1 gap-3',
       )}
     >
       {notes.map((note, i) => (

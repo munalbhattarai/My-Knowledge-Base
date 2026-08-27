@@ -31,6 +31,22 @@ export function formatDate(input) {
   })
 }
 
+// "12/12/2026"
+export function formatSlashDate(input) {
+  if (!input) return ''
+  const d = new Date(input)
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`
+}
+
+// "10:30 PM, Monday" as seen in Mino design
+export function formatNoteTime(input) {
+  if (!input) return ''
+  const d = new Date(input)
+  const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const dayStr = d.toLocaleDateString([], { weekday: 'long' })
+  return `${timeStr}, ${dayStr}`
+}
+
 export function formatDateTime(input) {
   if (!input) return ''
   return new Date(input).toLocaleDateString(undefined, {

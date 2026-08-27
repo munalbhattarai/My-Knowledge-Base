@@ -2,73 +2,175 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useSelector } from 'react-redux'
-import { Plus, ArrowRight, Star, Clock3, NotebookPen, Sparkles } from 'lucide-react'
+import {
+  Folder,
+  MoreHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Clock,
+  Sparkles,
+  ArrowRight,
+  Bookmark,
+} from 'lucide-react'
 import Button from '@/components/common/Button'
 import { dashboardApi } from '@/api/dashboardApi'
 import { notesApi } from '@/api/notesApi'
-import { STATUS_META } from '@/utils/status'
 import { Skeleton } from '@/components/common/Skeleton'
 import { EmptyState } from '@/components/common/EmptyState'
-import { relativeTime, formatDate } from '@/utils/time'
+import { NoteCard, NewNoteDashedCard } from '@/components/notes/NoteCard'
+import { PushPin } from '@/components/common/PushPin'
+import { formatSlashDate } from '@/utils/time'
 import { cn } from '@/utils/cn'
 
-function greeting() {
-  const hour = new Date().getHours()
-  if (hour < 5) return 'Working late'
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
-}
+// Pastel folder color sets (matching Image 1)
+const FOLDER_COLORS = [
+  {
+    bg: 'bg-[#dbeafe]', // Soft Blue
+    border: 'border-[#bfdbfe]',
+    iconBg: 'bg-[#60a5fa]',
+    text: 'text-[#1e3a8a]',
+    subText: 'text-[#3b82f6]',
+  },
+  {
+    bg: 'bg-[#ffedd5]', // Soft Peach / Terracotta
+    border: 'border-[#fed7aa]',
+    iconBg: 'bg-[#f97316]',
+    text: 'text-[#7c2d12]',
+    subText: 'text-[#ea580c]',
+  },
+  {
+    bg: 'bg-[#fef9c3]', // Soft Yellow
+    border: 'border-[#fef08a]',
+    iconBg: 'bg-[#eab308]',
+    text: 'text-[#713f12]',
+    subText: 'text-[#ca8a04]',
+  },
+  {
+    bg: 'bg-[#f3e8ff]', // Soft Purple
+    border: 'border-[#e9d5ff]',
+    iconBg: 'bg-[#a855f7]',
+    text: 'text-[#581c87]',
+    subText: 'text-[#9333ea]',
+  },
+  {
+    bg: 'bg-[#dcfce7]', // Soft Mint
+    border: 'border-[#bbf7d0]',
+    iconBg: 'bg-[#22c55e]',
+    text: 'text-[#14532d]',
+    subText: 'text-[#16a34a]',
+  },
+]
 
-function Stat({ value, label, tone, icon: Icon, delay }) {
+// Folder Card (Image 1 top row)
+function FolderCard({ category, index, onClick }) {
+  const color = FOLDER_COLORS[index % FOLDER_COLORS.length]
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay, ease: [0.16, 1, 0.3, 1] }}
-      className="flex flex-1 min-w-[140px] items-center gap-3.5 rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-md p-4 shadow-sm shadow-slate-200/50 hover:shadow-md transition-all"
-    >
-      {Icon && (
-        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', tone.bg)}>
-          <Icon size={18} className={tone.icon} />
-        </div>
+      transition={{ duration: 0.22, delay: index * 0.04 }}
+      onClick={onClick}
+      className={cn(
+        'mino-card group flex flex-col justify-between rounded-[26px] p-5 border cursor-pointer select-none min-h-[140px]',
+        color.bg,
+        color.border,
       )}
-      <div className="flex flex-col">
-        <span className="mono text-2xl font-bold tabular tracking-tight text-slate-900">{value}</span>
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">{label}</span>
+    >
+      <div className="flex items-center justify-between">
+        {/* Folder Icon with Soft Gradient */}
+        <div className={cn('flex h-10 w-10 items-center justify-center rounded-2xl text-white shadow-xs', color.iconBg)}>
+          <Folder size={18} fill="currentColor" />
+        </div>
+        <button
+          type="button"
+          className="text-slate-400 hover:text-slate-700 transition-colors p-1"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClick()
+          }}
+        >
+          <MoreHorizontal size={16} />
+        </button>
+      </div>
+
+      <div className="mt-3">
+        <h3 className={cn('text-base font-bold tracking-tight truncate font-display', color.text)}>
+          {category.name}
+        </h3>
+        <p className={cn('text-xs font-semibold font-mono mt-0.5', color.subText)}>
+          {category.notes_count !== undefined ? `${category.notes_count} Notes` : 'Category'}
+        </p>
       </div>
     </motion.div>
   )
 }
 
-function NoteRow({ note, onOpen }) {
-  const meta = STATUS_META[note.status]
+// Dashed "+ New Folder" Card (Image 1 top right tile)
+function NewFolderDashedCard({ onClick }) {
   return (
     <button
       type="button"
-      onClick={() => onOpen(note.id)}
-      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-all duration-150 hover:bg-cyan-50/60"
+      onClick={onClick}
+      className="dashed-card group flex flex-col items-center justify-center gap-2.5 rounded-[26px] p-5 min-h-[140px] text-slate-500 hover:text-slate-800 select-none cursor-pointer"
     >
-      <span className={cn('h-2 w-2 shrink-0 rounded-full ring-2', meta?.dot, meta?.ring)} />
-      <span className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-slate-800 group-hover:text-cyan-700">
-        {note.title}
-      </span>
-      <span className="mono shrink-0 text-[11px] tabular text-slate-400 font-medium">{relativeTime(note.updated_at)}</span>
+      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xs group-hover:scale-110 transition-transform">
+        <Folder size={16} fill="currentColor" />
+      </div>
+      <span className="text-xs font-bold font-display">New folder</span>
     </button>
+  )
+}
+
+// Pinned Note Card in Review Pathway (Image 2)
+function PinnedPathwayCard({ note, step, pinColor, onClick }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      onClick={onClick}
+      className="mino-card relative flex flex-col justify-between rounded-[24px] bg-white border border-slate-200/90 p-5 shadow-md hover:shadow-xl transition-all cursor-pointer min-w-[200px] max-w-[240px] shrink-0"
+    >
+      {/* 3D Push Pin on Top Center (Image 2) */}
+      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10">
+        <PushPin color={pinColor} size="md" />
+      </div>
+
+      <div className="pt-2">
+        <span className="text-xs font-extrabold text-orange-500 font-mono">
+          0{step}
+        </span>
+        <h4 className="text-sm font-bold text-slate-900 line-clamp-1 mt-1 font-display">
+          {note.title}
+        </h4>
+        <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+          {note.content || 'Ready for spaced repetition review.'}
+        </p>
+      </div>
+
+      <div className="mt-4 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-medium">
+        <span>Review item</span>
+        <span className="text-amber-600 font-bold">Needs review</span>
+      </div>
+    </motion.div>
   )
 }
 
 export default function DashboardPage() {
   const navigate = useNavigate()
-  const user = useSelector((state) => state.auth.user)
+  const categories = useSelector((state) => state.entities.categories || [])
 
   const [stats, setStats] = useState(null)
-  const [recent, setRecent] = useState(null)
-  const [review, setReview] = useState(null)
+  const [recentNotes, setRecentNotes] = useState([])
+  const [reviewNotes, setReviewNotes] = useState([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [folderTab, setFolderTab] = useState('This Week')
+  const [notesTab, setNotesTab] = useState('Todays')
 
   useEffect(() => {
     let cancelled = false
+    setLoading(true)
     Promise.all([
       dashboardApi.get(),
       notesApi.list({ page: 1 }),
@@ -77,207 +179,220 @@ export default function DashboardPage() {
       .then(([s, r, q]) => {
         if (cancelled) return
         setStats(s)
-        const sorted = [...(r.results || [])].sort(
-          (a, b) => new Date(b.updated_at) - new Date(a.updated_at),
-        )
-        setRecent(sorted.slice(0, 6))
-        setReview((q.results || []).sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at)))
+        setRecentNotes(r.results || [])
+        setReviewNotes(q.results || [])
       })
       .catch(() => {
         if (!cancelled) setError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
     return () => {
       cancelled = true
     }
   }, [])
 
-  const progress = useMemo(() => {
-    if (!stats || stats.total_notes === 0) return 0
-    return Math.round((stats.learned / Math.max(1, stats.learned + stats.learning)) * 100)
-  }, [stats])
-
-  const username = user?.username || 'developer'
+  const currentMonthYear = new Date().toLocaleDateString(undefined, {
+    month: 'long',
+    year: 'numeric',
+  })
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* Header Banner */}
-      <motion.header
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
-      >
-        <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200/80 bg-cyan-50/80 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-cyan-700 shadow-xs">
-            <Sparkles size={12} className="text-cyan-600" />
-            <span>{formatDate(new Date().toISOString())}</span>
-          </div>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">
-            {greeting()}, <span className="bg-gradient-to-r from-cyan-600 to-teal-600 bg-clip-text text-transparent">{username}</span>.
-          </h1>
-          <p className="mt-1.5 text-[14.5px] font-medium text-slate-500">
-            {stats
-              ? `${stats.learning} note${stats.learning === 1 ? '' : 's'} in progress${stats.review ? ` · ${stats.review} waiting for review` : ''}`
-              : 'Loading your knowledge base…'}
-          </p>
-        </div>
-        <Button variant="primary" size="lg" onClick={() => navigate('/app/notes/new')}>
-          <Plus size={16} />
-          New note
-        </Button>
-      </motion.header>
+    <div className="flex flex-col gap-10">
+      {/* SECTION 1: Recent Folders (Categories) — Image 1 Top */}
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-xl font-extrabold text-slate-900 font-display tracking-tight">
+            Recent Folders
+          </h2>
 
-      {error ? (
-        <EmptyState
-          icon={<NotebookPen size={20} />}
-          title="Couldn't load your dashboard"
-          description="The API didn't respond. Check that the backend is running and try again."
-          action={
-            <Button onClick={() => window.location.reload()} variant="outline">
-              Retry
-            </Button>
-          }
-        />
-      ) : (
-        <>
-          {/* Stats Bar */}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {stats ? (
-              <>
-                <Stat
-                  value={stats.total_notes}
-                  label="Total notes"
-                  icon={NotebookPen}
-                  tone={{ bg: 'bg-slate-100', icon: 'text-slate-700' }}
-                  delay={0.05}
-                />
-                <Stat
-                  value={stats.learning}
-                  label="Learning"
-                  icon={Sparkles}
-                  tone={{ bg: 'bg-cyan-50', icon: 'text-cyan-600' }}
-                  delay={0.1}
-                />
-                <Stat
-                  value={stats.review}
-                  label="To review"
-                  icon={Clock3}
-                  tone={{ bg: 'bg-amber-50', icon: 'text-amber-600' }}
-                  delay={0.15}
-                />
-                <Stat
-                  value={stats.favorites}
-                  label="Favorites"
-                  icon={Star}
-                  tone={{ bg: 'bg-purple-50', icon: 'text-purple-600' }}
-                  delay={0.2}
-                />
-              </>
-            ) : (
-              Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)
-            )}
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Recently Updated */}
-            <section className="lg:col-span-2 flex flex-col gap-3">
-              <div className="flex items-center justify-between px-1">
-                <h2 className="text-base font-bold tracking-tight text-slate-900">Recently updated</h2>
-                <button
-                  type="button"
-                  onClick={() => navigate('/app/notes')}
-                  className="inline-flex items-center gap-1 text-[13px] font-semibold text-cyan-600 transition-colors hover:text-cyan-700"
-                >
-                  All notes
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-              {!recent ? (
-                <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-md p-3">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Skeleton key={i} className="h-10 w-full rounded-xl" />
-                  ))}
-                </div>
-              ) : recent.length === 0 ? (
-                <EmptyState
-                  compact
-                  icon={<NotebookPen size={18} />}
-                  title="No notes yet"
-                  description="Create your first note and it will show up here."
-                />
-              ) : (
-                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-md p-2 shadow-md shadow-slate-200/40">
-                  {recent.map((note) => (
-                    <NoteRow key={note.id} note={note} onOpen={(id) => navigate(`/app/notes/${id}`)} />
-                  ))}
-                </div>
-              )}
-            </section>
-
-            {/* Sidebar Widgets */}
-            <aside className="flex flex-col gap-6">
-              {/* Needs Review */}
-              <section className="flex flex-col gap-3">
-                <div className="flex items-center justify-between px-1">
-                  <h2 className="flex items-center gap-2 text-base font-bold tracking-tight text-slate-900">
-                    <Clock3 size={16} className="text-amber-500" />
-                    Needs review
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/app/review')}
-                    className="inline-flex items-center gap-1 text-[13px] font-semibold text-amber-600 transition-colors hover:text-amber-700"
-                  >
-                    View
-                    <ArrowRight size={14} />
-                  </button>
-                </div>
-                {!review ? (
-                  <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-md p-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-10 w-full rounded-xl" />
-                    ))}
-                  </div>
-                ) : review.length === 0 ? (
-                  <EmptyState
-                    compact
-                    icon={<Clock3 size={18} />}
-                    title="All caught up"
-                    description="No notes waiting for review."
-                  />
-                ) : (
-                  <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-md p-2 shadow-md shadow-slate-200/40">
-                    {review.slice(0, 5).map((note) => (
-                      <NoteRow key={note.id} note={note} onOpen={(id) => navigate(`/app/notes/${id}`)} />
-                    ))}
-                  </div>
+          {/* Time Filter Tabs (Image 1) */}
+          <div className="flex items-center gap-6 text-xs font-bold text-slate-400">
+            {['Todays', 'This Week', 'This Month'].map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setFolderTab(tab)}
+                className={cn(
+                  'relative pb-1.5 transition-colors cursor-pointer',
+                  folderTab === tab ? 'text-slate-900' : 'hover:text-slate-700',
                 )}
-              </section>
-
-              {/* Learning Progress */}
-              <section>
-                <h2 className="mb-3 flex items-center gap-2 text-base font-bold tracking-tight text-slate-900 px-1">
-                  <Star size={16} className="text-amber-500" />
-                  Learning progress
-                </h2>
-                <div className="rounded-2xl border border-slate-200/80 bg-white/85 backdrop-blur-md p-5 shadow-md shadow-slate-200/40">
-                  <div className="flex items-end justify-between">
-                    <span className="mono text-3xl font-extrabold tabular text-slate-900">{progress}%</span>
-                    <span className="text-[12px] font-semibold text-slate-500">
-                      {stats ? `${stats.learned} of ${stats.learned + stats.learning} learned` : '—'}
-                    </span>
-                  </div>
-                  <div className="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 shadow-inner">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 transition-[width] duration-700 shadow-sm shadow-cyan-500/30"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-              </section>
-            </aside>
+              >
+                {tab}
+                {folderTab === tab && (
+                  <motion.span
+                    layoutId="folderTabUnderline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-slate-900"
+                  />
+                )}
+              </button>
+            ))}
           </div>
-        </>
+        </div>
+
+        {/* Folders Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {loading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-36 w-full rounded-[26px]" />
+            ))
+          ) : (
+            <>
+              {categories.slice(0, 3).map((cat, idx) => (
+                <FolderCard
+                  key={cat.id}
+                  category={cat}
+                  index={idx}
+                  onClick={() => navigate(`/app/category/${cat.id}`)}
+                />
+              ))}
+              <NewFolderDashedCard onClick={() => navigate('/app/notes?view=categories')} />
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* SECTION 2: My Notes Grid — Image 1 Bottom */}
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <h2 className="text-xl font-extrabold text-slate-900 font-display tracking-tight">
+              My Notes
+            </h2>
+
+            {/* Time Filter Tabs */}
+            <div className="flex items-center gap-5 text-xs font-bold text-slate-400">
+              {['Todays', 'This Week', 'This Month'].map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setNotesTab(tab)}
+                  className={cn(
+                    'relative pb-1.5 transition-colors cursor-pointer',
+                    notesTab === tab ? 'text-slate-900' : 'hover:text-slate-700',
+                  )}
+                >
+                  {tab}
+                  {notesTab === tab && (
+                    <motion.span
+                      layoutId="notesTabUnderline"
+                      className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-slate-900"
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Month Navigator Arrow Buttons (Image 1) */}
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500 font-mono">
+            <button
+              type="button"
+              className="p-1 rounded-lg hover:bg-white text-slate-400 hover:text-slate-800 transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span>{currentMonthYear}</span>
+            <button
+              type="button"
+              className="p-1 rounded-lg hover:bg-white text-slate-400 hover:text-slate-800 transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Notes Grid with Dashed "+ New Note" Card */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-56 w-full rounded-[28px]" />
+            ))}
+          </div>
+        ) : recentNotes.length === 0 ? (
+          <div className="rounded-[28px] bg-white border border-slate-200/80 p-8 text-center">
+            <EmptyState
+              icon={<Bookmark size={22} />}
+              title="No notes created yet"
+              description="Start capturing your knowledge notes and code snippets."
+              action={
+                <Button onClick={() => navigate('/app/notes/new')}>
+                  <Plus size={15} />
+                  Create First Note
+                </Button>
+              }
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {recentNotes.slice(0, 3).map((note, idx) => (
+              <NoteCard
+                key={note.id}
+                note={note}
+                index={idx}
+                onToggleFavorite={async (n) => {
+                  await notesApi.update(n.id, { is_favorite: !n.is_favorite })
+                  setRecentNotes((prev) =>
+                    prev.map((item) =>
+                      item.id === n.id ? { ...item, is_favorite: !item.is_favorite } : item,
+                    ),
+                  )
+                }}
+                onDelete={async (n) => {
+                  await notesApi.delete(n.id)
+                  setRecentNotes((prev) => prev.filter((item) => item.id !== n.id))
+                }}
+              />
+            ))}
+            <NewNoteDashedCard onClick={() => navigate('/app/notes/new')} />
+          </div>
+        )}
+      </section>
+
+      {/* SECTION 3: Pinned Learning Roadmap / Review Pathway (Image 2) */}
+      {reviewNotes.length > 0 && (
+        <section className="flex flex-col gap-4 mt-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-extrabold text-slate-900 font-display tracking-tight flex items-center gap-2">
+                <Sparkles size={18} className="text-amber-500" />
+                Review Pathway
+              </h2>
+              <p className="text-xs text-slate-400 font-medium">
+                Pinned items scheduled for active recall &amp; revision.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/app/review')}
+              className="text-xs font-bold text-slate-700 hover:text-slate-950 inline-flex items-center gap-1"
+            >
+              View Queue <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Curved Dotted Roadmap Container */}
+          <div className="relative rounded-[32px] bg-white border border-slate-200/80 p-8 shadow-sm overflow-x-auto">
+            {/* Subtle Horizontal Dotted Connecting Line */}
+            <div className="absolute top-1/2 left-10 right-10 h-0.5 border-t-2 border-dashed border-slate-200 -translate-y-1/2 pointer-events-none hidden sm:block" />
+
+            <div className="relative z-10 flex items-center gap-8 py-2">
+              {reviewNotes.slice(0, 5).map((note, index) => {
+                const pinColors = ['orange', 'blue', 'purple', 'green', 'red']
+                return (
+                  <PinnedPathwayCard
+                    key={note.id}
+                    note={note}
+                    step={index + 1}
+                    pinColor={pinColors[index % pinColors.length]}
+                    onClick={() => navigate(`/app/notes/${note.id}`)}
+                  />
+                )
+              })}
+            </div>
+          </div>
+        </section>
       )}
     </div>
   )

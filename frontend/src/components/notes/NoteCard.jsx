@@ -1,39 +1,55 @@
 import { useState, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
-import { Star, Archive, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
-import { STATUS_META } from '@/utils/status'
-import { relativeTime, excerpt } from '@/utils/time'
+import { Star, Clock, Pencil, Trash2, MoreHorizontal, Layers } from 'lucide-react'
+import { formatSlashDate, formatNoteTime, excerpt } from '@/utils/time'
 import { cn } from '@/utils/cn'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 
-function FavoriteButton({ note, onToggleFavorite }) {
-  return (
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        onToggleFavorite?.(note)
-      }}
-      className={cn(
-        'group/star rounded-xl p-1.5 transition-all duration-150',
-        note.is_favorite ? 'text-amber-500 bg-amber-50' : 'text-slate-300 hover:text-amber-500 hover:bg-slate-100/60',
-      )}
-      aria-label={note.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-    >
-      <motion.span
-        key={String(note.is_favorite)}
-        initial={{ scale: 0.6, rotate: -20 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', bounce: 0.4, duration: 0.35 }}
-        className="block"
-      >
-        <Star size={16} fill={note.is_favorite ? 'currentColor' : 'none'} />
-      </motion.span>
-    </button>
-  )
-}
+const PASTEL_THEMES = [
+  {
+    card: 'bg-[#fef9c3] border-[#fef08a] text-[#422006]',
+    badge: 'bg-[#fef08a] text-[#713f12] border-[#fde047]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#854d0e]',
+    pinColor: 'orange',
+  },
+  {
+    card: 'bg-[#fee2e2] border-[#fecdd3] text-[#4c0519]',
+    badge: 'bg-[#fecdd3] text-[#881337] border-[#fda4af]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#9f1239]',
+    pinColor: 'red',
+  },
+  {
+    card: 'bg-[#e0f2fe] border-[#bae6fd] text-[#082f49]',
+    badge: 'bg-[#bae6fd] text-[#075985] border-[#7dd3fc]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#0369a1]',
+    pinColor: 'blue',
+  },
+  {
+    card: 'bg-[#f3e8ff] border-[#e9d5ff] text-[#3b0764]',
+    badge: 'bg-[#e9d5ff] text-[#581c87] border-[#d8b4fe]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#6b21a8]',
+    pinColor: 'purple',
+  },
+  {
+    card: 'bg-[#dcfce7] border-[#bbf7d0] text-[#052e16]',
+    badge: 'bg-[#bbf7d0] text-[#14532d] border-[#86efac]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#166534]',
+    pinColor: 'green',
+  },
+  {
+    card: 'bg-[#ffedd5] border-[#fed7aa] text-[#431407]',
+    badge: 'bg-[#fed7aa] text-[#7c2d12] border-[#fdba74]/60',
+    iconBg: 'bg-[#1e293b] text-white',
+    clockText: 'text-[#9a3412]',
+    pinColor: 'orange',
+  },
+]
 
 export function NoteCard({ note, layout = 'grid', onToggleFavorite, onDelete, index = 0 }) {
   const navigate = useNavigate()
@@ -41,13 +57,9 @@ export function NoteCard({ note, layout = 'grid', onToggleFavorite, onDelete, in
   const [deleting, setDeleting] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
-  const closeTimer = useRef(null)
 
+  const theme = PASTEL_THEMES[index % PASTEL_THEMES.length]
   const category = note.category && typeof note.category === 'object' ? note.category : null
-  const tagNames = (note.tags || []).map((t) =>
-    typeof t === 'object' && t !== null ? t.name : String(t)
-  ).filter(Boolean)
-
   const isList = layout === 'list'
 
   const handleDelete = async () => {
@@ -66,37 +78,22 @@ export function NoteCard({ note, layout = 'grid', onToggleFavorite, onDelete, in
     setMenuOpen((o) => !o)
   }, [])
 
-  const handleCardMouseLeave = useCallback(() => {
-    closeTimer.current = setTimeout(() => setMenuOpen(false), 120)
-  }, [])
-
-  const handleCardMouseEnter = useCallback(() => {
-    clearTimeout(closeTimer.current)
-  }, [])
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay: index * 0.035, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.28, delay: index * 0.03 }}
       onClick={() => {
         if (!menuOpen) navigate(`/app/notes/${note.id}`)
       }}
-      onMouseEnter={handleCardMouseEnter}
-      onMouseLeave={handleCardMouseLeave}
       className={cn(
-        'group relative cursor-pointer overflow-visible rounded-2xl border border-slate-200/90 bg-white/80 backdrop-blur-md shadow-md shadow-slate-200/50',
-        'transition-all duration-250 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-cyan-500/10 hover:border-cyan-400/50 hover:bg-white',
-        isList
-          ? 'flex items-center gap-4 px-5 py-3.5'
-          : 'flex flex-col p-5',
+        'mino-card group relative cursor-pointer rounded-[28px] border p-6 select-none',
+        theme.card,
+        isList ? 'flex items-center gap-6 py-4' : 'flex flex-col justify-between min-h-[220px]',
         menuOpen && 'z-50',
       )}
     >
-      {/* Top subtle glow line on hover */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-500 to-teal-400 opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-
-      {/* Backdrop — stops propagation so card onClick doesn't fire */}
+      {/* Backdrop for Menu */}
       {menuOpen && (
         <div
           className="fixed inset-0 z-[9998]"
@@ -104,115 +101,101 @@ export function NoteCard({ note, layout = 'grid', onToggleFavorite, onDelete, in
             e.stopPropagation()
             setMenuOpen(false)
           }}
-          onContextMenu={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setMenuOpen(false)
-          }}
         />
       )}
 
-      <div className={cn('flex min-w-0 flex-1 items-start justify-between gap-3', !isList && 'mb-2.5')}>
-        <div className="min-w-0">
-          <h3 className="truncate text-[15px] font-bold tracking-tight text-slate-900 transition-colors group-hover:text-cyan-700">
-            {note.title}
-          </h3>
-        </div>
-        <div
-          ref={menuRef}
-          className="flex shrink-0 items-center gap-0.5"
-          onMouseEnter={handleCardMouseEnter}
-        >
-          <FavoriteButton note={note} onToggleFavorite={onToggleFavorite} />
+      {/* Top Header Row (Image 1): Date + Action Pen / Menu */}
+      <div className="flex items-center justify-between gap-2 mb-2.5">
+        <span className="text-[11px] font-bold tracking-wider opacity-70 font-mono">
+          {formatSlashDate(note.updated_at || note.created_at)}
+        </span>
+
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          {/* Favorite Star */}
+          <button
+            type="button"
+            onClick={() => onToggleFavorite?.(note)}
+            className={cn(
+              'p-1.5 rounded-full transition-transform active:scale-90',
+              note.is_favorite ? 'text-amber-500 bg-amber-100/70' : 'text-slate-400 hover:text-slate-700',
+            )}
+            title={note.is_favorite ? 'Favorited' : 'Add to favorites'}
+          >
+            <Star size={14} fill={note.is_favorite ? 'currentColor' : 'none'} />
+          </button>
+
+          {/* Quick Edit Pen Square Icon (Image 1) */}
           <button
             type="button"
             onClick={handleMenuToggle}
-            className="rounded-xl p-1.5 text-slate-300 transition-colors hover:bg-slate-100/60 hover:text-slate-600"
-            aria-label="More actions"
+            className={cn(
+              'h-7 w-7 rounded-xl flex items-center justify-center shadow-xs transition-transform hover:scale-105 active:scale-95',
+              theme.iconBg,
+            )}
+            title="Options"
           >
-            <MoreHorizontal size={16} />
+            <Pencil size={13} />
           </button>
         </div>
       </div>
 
-      {/* Dropdown menu */}
+      {/* Dropdown Menu */}
       {menuOpen && (
-        <motion.div
+        <div
           ref={menuRef}
-          initial={{ opacity: 0, y: -4, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -4, scale: 0.98 }}
-          transition={{ duration: 0.14, ease: 'easeOut' }}
-          style={{ originY: 0 }}
-          className="absolute right-0 top-full z-[9999] mt-2 w-40 overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xl p-1"
+          className="absolute right-6 top-14 z-[9999] w-36 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 shadow-xl text-slate-800"
           onClick={(e) => e.stopPropagation()}
-          onMouseEnter={handleCardMouseEnter}
-          onMouseLeave={handleCardMouseLeave}
         >
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={() => {
               setMenuOpen(false)
               navigate(`/app/notes/${note.id}/edit`)
             }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium text-slate-700 transition-colors hover:bg-slate-100/80"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-slate-100 transition-colors"
           >
-            <Pencil size={14} className="shrink-0 opacity-70" />
-            <span className="flex-1 truncate">Edit</span>
+            <Pencil size={13} />
+            <span>Edit Note</span>
           </button>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={() => {
               setMenuOpen(false)
               setConfirmDelete(true)
             }}
-            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium text-rose-600 transition-colors hover:bg-rose-50"
+            className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
           >
-            <Trash2 size={14} className="shrink-0 opacity-70" />
-            <span className="flex-1 truncate">Delete</span>
+            <Trash2 size={13} />
+            <span>Delete</span>
           </button>
-        </motion.div>
+        </div>
       )}
 
-      {note.content && (
-        <p className="line-clamp-2 text-[13px] leading-relaxed text-slate-500">{excerpt(note.content)}</p>
-      )}
+      {/* Main Content Area */}
+      <div className="flex-1">
+        <h3 className="text-base sm:text-lg font-bold tracking-tight line-clamp-1 group-hover:underline">
+          {note.title}
+        </h3>
 
-      <div
-        className={cn(
-          'flex items-center gap-2',
-          !isList && 'mt-4',
-          isList && 'ml-auto shrink-0',
+        {note.content && (
+          <p className="mt-2 text-xs sm:text-[13px] leading-relaxed opacity-80 line-clamp-3">
+            {excerpt(note.content, 140)}
+          </p>
         )}
-      >
+      </div>
+
+      {/* Bottom Row (Image 1): Clock Timestamp & Category Pill */}
+      <div className="mt-5 pt-3 border-t border-black/5 flex items-center justify-between gap-2">
+        <span className={cn('flex items-center gap-1.5 text-[11px] font-semibold tracking-tight', theme.clockText)}>
+          <Clock size={13} />
+          <span>{formatNoteTime(note.updated_at)}</span>
+        </span>
+
         {category && (
-          <span className="hidden items-center gap-1 rounded-full border border-cyan-200/70 bg-cyan-50/70 px-2.5 py-0.5 text-[11px] font-semibold text-cyan-700 sm:inline-flex">
+          <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-2xs', theme.badge)}>
             {category.name}
           </span>
         )}
-        <span className="flex flex-wrap items-center gap-1">
-          {tagNames.slice(0, 2).map((name) => (
-            <span
-              key={name}
-              className="inline-flex items-center rounded-full border border-purple-200/70 bg-purple-50/70 px-2.5 py-0.5 text-[11px] font-medium text-purple-700"
-            >
-              #{name}
-            </span>
-          ))}
-          {tagNames.length > 2 && (
-            <span className="text-[11px] font-medium text-slate-400">+{tagNames.length - 2}</span>
-          )}
-        </span>
-      </div>
-
-      <div className={cn('flex items-center justify-between gap-2 border-t border-slate-100', !isList && 'mt-4 pt-3', isList && 'ml-4 shrink-0 border-t-0 pt-0')}>
-        <span className="mono text-[11px] tabular font-medium text-slate-400">{relativeTime(note.updated_at)}</span>
-        <div className="flex items-center gap-2">
-          {note.is_archived && <Archive size={13} className="text-slate-400" />}
-          <StatusPill status={note.status} />
-        </div>
       </div>
 
       <ConfirmDialog
@@ -220,21 +203,26 @@ export function NoteCard({ note, layout = 'grid', onToggleFavorite, onDelete, in
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
         title="Delete this note?"
-        description={`"${note.title}" will be permanently removed. This cannot be undone.`}
-        confirmLabel="Delete note"
+        description={`"${note.title}" will be permanently removed.`}
+        confirmLabel="Delete"
         busy={deleting}
       />
     </motion.article>
   )
 }
 
-function StatusPill({ status }) {
-  const meta = STATUS_META[status]
-  if (!meta) return null
+// Dashed "+ New Note" quick creation card (matching Image 1 right tile)
+export function NewNoteDashedCard({ onClick }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/80 bg-slate-50 px-2.5 py-0.5">
-      <span className={cn('h-1.5 w-1.5 rounded-full ring-2', meta.dot, meta.ring)} />
-      <span className="text-[11px] font-semibold text-slate-600">{meta.label}</span>
-    </span>
+    <button
+      type="button"
+      onClick={onClick}
+      className="dashed-card group flex flex-col items-center justify-center gap-3 rounded-[28px] p-6 min-h-[220px] text-slate-500 hover:text-slate-800 select-none cursor-pointer"
+    >
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-md group-hover:scale-110 transition-transform">
+        <Pencil size={18} />
+      </div>
+      <span className="text-sm font-bold font-display">New Note</span>
+    </button>
   )
 }
