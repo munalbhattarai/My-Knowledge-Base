@@ -46,7 +46,7 @@ function TopHeader() {
         </h1>
       </div>
 
-      {/* Right: Floating Search Capsule & Quick New Note Action */}
+      {/* Right: Floating Search Capsule */}
       <div className="flex items-center gap-3 ml-auto">
         <button
           type="button"
@@ -58,15 +58,6 @@ function TopHeader() {
           <span className="sm:hidden">Search…</span>
           <Kbd>⌘K</Kbd>
         </button>
-
-        <Button
-          size="sm"
-          onClick={() => navigate('/app/notes/new')}
-          className="hidden sm:inline-flex"
-        >
-          <Plus size={15} />
-          <span>New note</span>
-        </Button>
       </div>
     </header>
   )
