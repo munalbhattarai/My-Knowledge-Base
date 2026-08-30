@@ -1,5 +1,6 @@
 # Personal Knowledge Base
 
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-munal.me-0051C8?style=for-the-badge&logo=cloudflare&logoColor=white)](https://munal.me)
 [![Frontend](https://img.shields.io/badge/Frontend-Cloudflare%20Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://pages.cloudflare.com/)
 [![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://render.com/)
@@ -90,3 +91,12 @@ npm run dev
 - **Backend (Render)**:
   - **Build Command**: `./build.sh` (`pip install`, `collectstatic`, `migrate`)
   - **Start Command**: `gunicorn config.wsgi:application`
+---
+
+## 📜 License
+Copyright © 2026 Munal. All rights reserved.
+
+This project is proprietary. The source code is provided for viewing
+and portfolio purposes only. No permission is granted to copy, modify,
+distribute, sublicense, or use this code without explicit written permission.
+
